@@ -68,6 +68,7 @@ Proyek ini adalah implementasi sistem sederhana untuk mendeteksi integritas file
 
 **Struktur Folder Awal**
 <img width="402" height="433" alt="Screenshot 2025-11-04 232149" src="https://github.com/user-attachments/assets/d8ee2e54-64f1-478b-8b91-4a254ef2d13c" />
+
 *Deskripsi foto: Menunjukkan folder `secure_files` dan file-file Python sebelum program dijalankan.*
 
 ---
@@ -96,6 +97,7 @@ Perhatikan output di terminal. Program akan memberitahu bahwa ia sedang membuat 
 
    Outputnya akan menunjukkan "Verifikasi OK" untuk setiap file.
 <img width="1545" height="179" alt="Screenshot 2025-11-04 235251" src="https://github.com/user-attachments/assets/26362a74-7912-4393-aecf-7af4a5f34196" />
+
 *Deskripsi foto: Terminal menampilkan log `INFO: Verifikasi OK` untuk semua file, menandakan tidak ada perubahan yang terdeteksi.*
 
 ---
@@ -120,14 +122,11 @@ Sekarang adalah bagian utamanya. Kita akan memodifikasi folder `secure_files` se
    alert('kamu sudah di-hack');
    ```
 
-**Screenshot 4: Kondisi Folder Setelah Diserang**
-*Deskripsi foto: Folder `secure_files` sekarang berisi `data.txt` (yang isinya sudah diubah), file baru `hacked.js`, dan file `config.txt` sudah tidak ada.*
+<img width="498" height="391" alt="Screenshot 2025-11-04 235453" src="https://github.com/user-attachments/assets/8686301e-38d2-4e33-917a-9081c14a2dfe" />
 
 ---
 
 ## LANGKAH 4: Menjalankan Deteksi Anomali
-
-Waktunya melihat apakah sistem kita berhasil mendeteksi semua perubahan mencurigakan tersebut.
 
 1. Kembali ke terminal.
 2. Jalankan lagi perintah pengecekan:
@@ -136,16 +135,13 @@ Waktunya melihat apakah sistem kita berhasil mendeteksi semua perubahan mencurig
    python integrity_checker.py --check
    ```
 
-   Perhatikan outputnya dengan saksama! Kamu akan melihat sistem melaporkan ketiga anomali dengan level yang berbeda (WARNING dan ALERT).
+<img width="1566" height="221" alt="Screenshot 2025-11-04 235518" src="https://github.com/user-attachments/assets/a5b44d9e-8e74-4c99-ba85-e65bb326d170" />
 
-**Screenshot 5: Sistem Mendeteksi Anomali**
 *Deskripsi foto: Output terminal setelah menjalankan `--check`. Terlihat jelas log `WARNING` untuk file yang diubah dan dihapus, serta log `ALERT` untuk file baru yang tidak dikenal.*
 
 ---
 
 ## LANGKAH 5: Melihat Laporan Ringkas
-
-Terakhir, mari kita lihat ringkasan dari semua aktivitas yang tercatat di `security.log`.
 
 1. Di terminal, jalankan skrip laporan:
 
@@ -155,15 +151,9 @@ Terakhir, mari kita lihat ringkasan dari semua aktivitas yang tercatat di `secur
 
    Hasilnya akan berupa ringkasan jumlah file yang aman dan yang terdeteksi memiliki anomali, beserta waktu anomali terakhir.
 
-**Screenshot 6: Laporan Akhir Status Keamanan**
+<img width="1436" height="258" alt="Screenshot 2025-11-04 235540" src="https://github.com/user-attachments/assets/dd832cf6-3b8f-4043-b08b-43b7b6c877cd" />
+<img width="1596" height="554" alt="Screenshot 2025-11-04 235601" src="https://github.com/user-attachments/assets/f6ea6f21-d909-4e0f-8840-7abed795a9d7" />
+
 *Deskripsi foto: Hasil akhir dari `report_generator.py` yang merangkum jumlah file rusak/anomali dan waktu kejadian terakhir, memberikan gambaran cepat tentang status keamanan sistem.*
 
 ---
-
-Dengan panduan ini, kamu bisa membuat dokumentasi yang sangat jelas dan profesional di README.md GitHub-mu atau untuk laporan tugasmu. Selamat mencoba!
-
-```
-
-Kamu bisa langsung menyalin dan menempelkan markdown di atas ke file README.md GitHub-mu. Panduan ini sudah terstruktur dengan baik dan siap untuk digunakan!
-```
-
