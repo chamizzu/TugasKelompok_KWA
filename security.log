@@ -1,0 +1,10 @@
+[2025-11-04 23:51:50] INFO: Baseline berhasil dibuat dan disimpan di 'hash_db.json'
+[2025-11-04 23:52:37] INFO: Memulai pengecekan integritas...
+[2025-11-04 23:52:37] INFO: Verifikasi OK. File "config.txt"
+[2025-11-04 23:52:37] INFO: Verifikasi OK. File "data.txt"
+[2025-11-04 23:52:37] INFO: Pengecekan integritas selesai.
+[2025-11-04 23:55:05] INFO: Memulai pengecekan integritas...
+[2025-11-04 23:55:05] WARNING: Integritas GAGAL! File telah dihapus. File "config.txt"
+[2025-11-04 23:55:05] WARNING: Integritas GAGAL! File telah diubah. File "data.txt"
+[2025-11-04 23:55:05] ALERT: File tidak dikenal terdeteksi. File "hacked.js"
+[2025-11-04 23:55:05] INFO: Pengecekan integritas selesai.
