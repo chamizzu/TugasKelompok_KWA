@@ -1,14 +1,13 @@
-
+# TUGAS KELOMPOK KWA
 ### Anggota Kelompok :
 |             Nama              |     NRP    |
 |-------------------------------|------------|
 | Nayla Raissa Azzahra          | 5027231054 |
 | Aisha Ayya Ratiandari              | 5027231056 |
+| Adlya Isriena Aftarsiya              | 5027231066 |
 | Aisyah Rahmasari              | 5027231072 |
 
 # Sistem Deteksi Integritas File Sederhana
-
-Proyek ini adalah implementasi sistem sederhana untuk mendeteksi integritas file dan aktivitas mencurigakan pada sebuah direktori. Sistem ini dibuat menggunakan Python sebagai bagian dari tugas kuliah.
 
 ## Fitur Utama
 
