@@ -21,18 +21,6 @@
 ### Prasyarat
 - Python 3.x
 
-### Instalasi
-1.  **Clone repositori ini:**
-    ```bash
-    git clone https://github.com/NAMA_USER_KAMU/NAMA_REPO_KAMU.git
-    cd NAMA_REPO_KAMU
-    ```
-
-2.  **(Opsional)** Jika ada dependensi, install menggunakan pip:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
 ### Menjalankan Program
 
 1.  **Membuat Baseline Awal**
