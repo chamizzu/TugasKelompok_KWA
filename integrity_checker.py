@@ -1,21 +1,13 @@
-# ==============================================================================
-# integrity_checker.py
-# Skrip utama untuk membuat baseline dan memverifikasi integritas file.
-# ==============================================================================
-
-# BAGIAN 1: IMPORT MODUL
 import hashlib
 import os
 import json
 from datetime import datetime
 import sys
+import time
 
-# BAGIAN 2: KONFIGURASI
-MONITOR_DIR = "secure_files"    # Folder yang akan dipantau
-HASH_DB_FILE = "hash_db.json"   # File database untuk menyimpan hash baseline
-LOG_FILE = "security.log"       # File untuk mencatat semua aktivitas
-
-# BAGIAN 3: FUNGSI-FUNGSI PENDUKUNG
+MONITOR_DIR = "secure_files"
+HASH_DB_FILE = "hash_db.json"
+LOG_FILE = "security.log"
 
 def calculate_hash(filepath):
     """Menghitung hash SHA-256 dari sebuah file."""
@@ -29,84 +21,146 @@ def calculate_hash(filepath):
         return None
 
 def log_activity(level, message, filename=""):
-    """Mencatat aktivitas ke dalam file log dengan format yang ditentukan."""
+    """Mencatat aktivitas ke dalam file log."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # Level diubah menjadi huruf besar sesuai permintaan soal
     level_str = level.upper()
     log_entry = f"[{timestamp}] {level_str}: {message}"
     if filename:
-        # Format "File "nama.file"" sesuai permintaan soal
         log_entry += f" File \"{filename}\""
-    
     print(log_entry)
     with open(LOG_FILE, "a") as f:
         f.write(log_entry + "\n")
 
-# BAGIAN 4: FUNGSI-FUNGSI INTI
+def scan_files_recursively(directory):
+    """Memindai semua file di dalam direktori dan subdirektorinya."""
+    scanned_files = {}
+    for root, _, files in os.walk(directory):
+        for filename in files:
+            filepath = os.path.join(root, filename)
+            relative_path = os.path.relpath(filepath, directory).replace("\\", "/")
+            scanned_files[relative_path] = calculate_hash(filepath)
+    return scanned_files
 
-def create_baseline():
-    """TUGAS #2.1: Membuat dan menyimpan baseline hash dari semua file di folder."""
-    baseline_hashes = {}
-    print(f"Membuat baseline untuk folder '{MONITOR_DIR}'...")
-    
-    if not os.path.isdir(MONITOR_DIR):
-        log_activity("alert", f"Folder '{MONITOR_DIR}' tidak ditemukan! Membuat folder baru.")
-        os.makedirs(MONITOR_DIR)
-
-    for filename in os.listdir(MONITOR_DIR):
-        filepath = os.path.join(MONITOR_DIR, filename)
-        if os.path.isfile(filepath):
-            file_hash = calculate_hash(filepath)
-            baseline_hashes[filename] = file_hash
-            print(f"  - Menghitung hash untuk {filename}")
-
-    with open(HASH_DB_FILE, "w") as f:
-        json.dump(baseline_hashes, f, indent=4)
-    log_activity("info", f"Baseline berhasil dibuat dan disimpan di '{HASH_DB_FILE}'")
-
-def verify_integrity():
-    """TUGAS #1 & #2.2: Memverifikasi integritas file berdasarkan baseline."""
-    log_activity("info", "Memulai pengecekan integritas...")
+def get_file_statuses():
+    """
+    Inti dari logika verifikasi. Fungsi ini MENGEMBALIKAN status file,
+    bukan mencetaknya. Ini agar bisa dipakai oleh web dan CLI.
+    """
     try:
         with open(HASH_DB_FILE, "r") as f:
             baseline_hashes = json.load(f)
     except FileNotFoundError:
-        log_activity("alert", f"File baseline '{HASH_DB_FILE}' tidak ditemukan. Jalankan mode --init terlebih dahulu.")
+        baseline_hashes = {}
+
+    current_files = scan_files_recursively(MONITOR_DIR)
+    
+    all_known_files = set(baseline_hashes.keys()) | set(current_files.keys())
+    
+    statuses = []
+    for filename in sorted(list(all_known_files)):
+        status_info = {"file": filename, "status": "UNKNOWN", "status_class": "unknown"}
+        
+        # Cek apakah file ini ada di baseline
+        is_tracked = filename in baseline_hashes
+        # Cek apakah file ini ada di direktori sekarang
+        is_present = filename in current_files
+        
+        if is_tracked and is_present:
+            if baseline_hashes[filename] == current_files[filename]:
+                status_info.update({"status": "Aman", "status_class": "ok"})
+            else:
+                status_info.update({"status": "Diubah", "status_class": "warning"})
+        elif is_tracked and not is_present:
+            status_info.update({"status": "Dihapus", "status_class": "alert"})
+        elif not is_tracked and is_present:
+            status_info.update({"status": "Tidak Dilacak", "status_class": "untracked"})
+        
+        statuses.append(status_info)
+    return statuses
+
+def add_to_baseline(files_to_add):
+    """Menambahkan atau memperbarui file tertentu ke dalam baseline."""
+    try:
+        with open(HASH_DB_FILE, "r") as f:
+            baseline_hashes = json.load(f)
+    except FileNotFoundError:
+        baseline_hashes = {}
+
+    if not files_to_add:
+        print("Error: Sebutkan nama file yang ingin ditambahkan.")
         return
 
-    current_files = {filename: calculate_hash(os.path.join(MONITOR_DIR, filename)) 
-                     for filename in os.listdir(MONITOR_DIR) 
-                     if os.path.isfile(os.path.join(MONITOR_DIR, filename))}
+    for filename in files_to_add:
+        filepath = os.path.join(MONITOR_DIR, filename)
+        if not os.path.exists(filepath):
+            print(f"Peringatan: File '{filename}' tidak ditemukan dan akan dilewati.")
+            continue
+        
+        file_hash = calculate_hash(filepath)
+        baseline_hashes[filename.replace("\\", "/")] = file_hash
+        print(f"File '{filename}' ditambahkan/diperbarui ke baseline.")
 
-    all_files = set(baseline_hashes.keys()) | set(current_files.keys())
+    with open(HASH_DB_FILE, "w") as f:
+        json.dump(baseline_hashes, f, indent=4)
+    log_activity("info", f"{len(files_to_add)} file ditambahkan/diperbarui ke baseline.")
 
-    for filename in sorted(list(all_files)):
-        # KASUS 1: File diubah
-        if filename in baseline_hashes and filename in current_files:
-            if baseline_hashes[filename] != current_files[filename]:
-                log_activity("warning", "Integritas GAGAL! File telah diubah.", filename)
-            else:
-                log_activity("info", "Verifikasi OK.", filename)
-        # KASUS 2: File dihapus
-        elif filename in baseline_hashes and filename not in current_files:
-            log_activity("warning", "Integritas GAGAL! File telah dihapus.", filename)
-        # KASUS 3: File ditambahkan
-        elif filename not in baseline_hashes and filename in current_files:
-            log_activity("alert", "File tidak dikenal terdeteksi.", filename)
+def run_check_and_log():
+    """Menjalankan pengecekan dan mencatat hasilnya ke log."""
+    statuses = get_file_statuses()
+    anomalies_found = False
+    
+    log_activity("info", "--- Memulai Pengecekan dan Logging ---")
+
+    for s in statuses:
+        if s["status"] == "Diubah":
+            log_activity("warning", "Integritas GAGAL! File telah diubah.", s["file"])
+            anomalies_found = True
+        elif s["status"] == "Dihapus":
+            log_activity("warning", "Integritas GAGAL! File telah dihapus.", s["file"])
+            anomalies_found = True
             
-    log_activity("info", "Pengecekan integritas selesai.")
+        elif s["status"] == "Tidak Dilacak":
+            log_activity("alert", "File baru tidak dikenal terdeteksi.", s["file"])
+            anomalies_found = True
+    
+    if not anomalies_found:
+        log_activity("info", "Semua file yang dilacak aman dan tidak ada file baru yang terdeteksi.")
 
-# BAGIAN 5: "OTAK" PROGRAM
+def run_monitor(interval=10):
+    """Menjalankan pengecekan otomatis secara terus-menerus."""
+    print(f"Memulai mode monitoring otomatis. Pengecekan setiap {interval} detik. (Tekan CTRL+C untuk berhenti)")
+    while True:
+        try:
+            log_activity("info", "--- Memulai Pengecekan Otomatis ---")
+            run_check_and_log()
+            time.sleep(interval)
+        except KeyboardInterrupt:
+            print("\nMonitoring dihentikan.")
+            break
+
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        command = sys.argv[1]
-        if command == "--init":
-            create_baseline()
-        elif command == "--check":
-            verify_integrity()
-        else:
-            print(f"Perintah tidak dikenal: {command}. Gunakan '--init' atau '--check'")
-    else:
+    if len(sys.argv) < 2:
         print("Penggunaan:")
-        print("  python integrity_checker.py --init    (Untuk membuat baseline awal)")
-        print("  python integrity_checker.py --check   (Untuk memeriksa integritas file)")
+        print("  python integrity_checker.py --add <file1> [file2] ...  (Menambahkan file ke baseline)")
+        print("  python integrity_checker.py --status                  (Melihat status file saat ini)")
+        print("  python integrity_checker.py --check                   (Mengecek dan mencatat anomali ke log)")
+        print("  python integrity_checker.py --monitor [detik]         (Memonitor secara otomatis)")
+        sys.exit(1)
+
+    command = sys.argv[1]
+
+    if command == "--add":
+        add_to_baseline(sys.argv[2:])
+    elif command == "--status":
+        for s in get_file_statuses():
+            print(f"- {s['file']}: {s['status']}")
+    elif command == "--check":
+        run_check_and_log()
+    elif command == "--monitor":
+        try:
+            interval = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+            run_monitor(interval)
+        except ValueError:
+            print("Error: Interval harus berupa angka (detik).")
+    else:
+        print(f"Perintah tidak dikenal: {command}")
