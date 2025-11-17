@@ -11,136 +11,114 @@
 
 ## Fitur Utama
 
--   **Pemantauan Direktori**: Memantau folder `secure_files` terhadap perubahan file (diubah, dihapus, ditambahkan).
--   **Verifikasi Integritas**: Menggunakan hash SHA-256 untuk membuat *baseline* dan membandingkannya dengan kondisi file saat ini.
--   **Logging Komprehensif**: Semua aktivitas (normal maupun mencurigakan) dicatat ke dalam file `security.log` dengan format: `[timestamp] LEVEL: Pesan`.
--   **Simulasi & Pelaporan**: Dilengkapi dengan skrip untuk membaca file log dan menghasilkan laporan ringkas mengenai status keamanan file.
+-   **Dashboard Web Real-time (Flask)**: Memantau status semua file melalui antarmuka web yang dinamis dan diperbarui secara otomatis tanpa perlu refresh.
+-   **Monitoring Otomatis**: Kemampuan untuk menjalankan sistem di latar belakang yang secara periodik memeriksa dan mencatat anomali.
+-   **Pelacakan File Selektif (Mirip `git add`)**: Pengguna dapat memilih file mana yang akan dipantau. File yang tidak dilacak akan diabaikan dari pengecekan integritas namun tetap ditampilkan di dashboard.
+-   **Pemindaian Folder Rekursif**: Sistem secara otomatis memindai semua file di dalam direktori `secure_files` dan seluruh subdirektorinya.
+-   **Verifikasi Integritas (SHA-256)**: Menggunakan hash SHA-256 untuk membuat *baseline* dan membandingkannya dengan kondisi file saat ini.
+-   **Logging Komprehensif**: Semua anomali (file diubah, dihapus, atau file baru yang tidak dikenal) dicatat ke dalam `security.log` dan langsung ditampilkan di dashboard.
 
 ## Cara Penggunaan
 
 ### Prasyarat
 - Python 3.x
+- Flask
 
 ### Menjalankan Program
 
 1.  **Membuat Baseline Awal**
-    Jalankan perintah ini untuk pertama kali. Perintah ini akan memindai folder `secure_files` dan membuat file `hash_db.json` sebagai acuan.
+    Perintah ini akan memindai semua file di `secure_files` dan menambahkannya ke baseline.
     ```bash
-    python integrity_checker.py --init
+    python integrity_checker.py --add .
     ```
 
-2.  **Memeriksa Integritas File**
-    Untuk memeriksa apakah ada file yang berubah, jalankan perintah berikut:
+2.  **Menambahkan File Spesifik**:
     ```bash
-    python integrity_checker.py --check
+    python integrity_checker.py --add file1.txt subfolder/file2.txt
+    ```
+    
+3.  **Melihat Status File Saat Ini**:
+    Perintah ini akan menampilkan status semua file (Aman, Diubah, Dihapus, Tidak Dilacak) di
+    terminal.
+    ```bash
+    python integrity_checker.py --status
     ```
 
-3.  **Melihat Laporan Ringkas**
-    Untuk melihat ringkasan status keamanan berdasarkan file `security.log`, jalankan:
+5.  **Menjalankan Monitoring Otomatis**
+    Untuk pencatatan anomali ke security.log secara otomatis, buka terminal kedua dan jalankan:
     ```bash
-    python report_generator.py
+    python integrity_checker.py --monitor 5
+    ```
+    
+7.  **Menjalankan Dashboard Web**
+    Setelah baseline diatur, jalankan server web untuk memulai pemantauan visual.
+    ```bash
+    python app.py
     ```
 
 ## Contoh Simulasi Serangan
 
-1.  **Ubah file**: Buka `secure_files/data.txt` dan modifikasi isinya.
-2.  **Hapus file**: Hapus `secure_files/config.txt`.
-3.  **Tambah file baru**: Buat file `hacked.js` di dalam folder `secure_files`.
-4.  Jalankan `python integrity_checker.py --check` untuk melihat bagaimana sistem mendeteksi ketiga anomali tersebut.
-5.  Jalankan `python report_generator.py` untuk melihat laporannya.
+1. **Lakukan “Serangan”**
+   Ubah, hapus, atau tambahkan file baru di dalam folder `secure_files`.
 
+2. **Amati Dashboard**
+   Dashboard web akan **secara otomatis mendeteksi semua perubahan** (file diubah, dihapus, atau tidak dilacak) **tanpa perlu refresh**.
 
-# Panduan Simulasi Serangan dan Deteksi Anomali
-## LANGKAH 0: Persiapan Awal 
-
-**Struktur Folder Awal**
-<img width="402" height="433" alt="Screenshot 2025-11-04 232149" src="https://github.com/user-attachments/assets/d8ee2e54-64f1-478b-8b91-4a254ef2d13c" />
-
-*Deskripsi foto: Menunjukkan folder `secure_files` dan file-file Python sebelum program dijalankan.*
-
----
-
-## LANGKAH 1: Membuat Baseline Awal
-
-1. Buka Terminal (atau Command Prompt) di dalam folder proyekmu.
-2. Jalankan perintah berikut:
-
-   ```bash
-   python integrity_checker.py --init
-    ````
-
-Perhatikan output di terminal. Program akan memberitahu bahwa ia sedang membuat baseline dan berhasil menyimpannya.
-<img width="1557" height="173" alt="Screenshot 2025-11-04 235013" src="https://github.com/user-attachments/assets/8a895fcb-a23c-4d9c-9cdc-15fb135709df" />
-
----
-
-## LANGKAH 2: Verifikasi Kondisi Normal
-
-1. Di terminal yang sama, jalankan perintah pengecekan:
+3. **Catat ke Log**
+   Jalankan perintah berikut di terminal untuk mencatat anomali secara permanen:
 
    ```bash
    python integrity_checker.py --check
    ```
 
-   Outputnya akan menunjukkan "Verifikasi OK" untuk setiap file.
-<img width="1545" height="179" alt="Screenshot 2025-11-04 235251" src="https://github.com/user-attachments/assets/26362a74-7912-4393-aecf-7af4a5f34196" />
+4. **Lihat Hasil Akhir**
+   Kotak *Activity Log* pada dashboard akan otomatis **ter-update** dengan catatan anomali terbaru.
 
-*Deskripsi foto: Terminal menampilkan log `INFO: Verifikasi OK` untuk semua file, menandakan tidak ada perubahan yang terdeteksi.*
 
----
+# Panduan Simulasi Serangan dan Deteksi
 
-## LANGKAH 3: Melakukan "Serangan"
+## LANGKAH 1: Persiapan dan Menjalankan Dashboard
 
-Sekarang adalah bagian utamanya. Kita akan memodifikasi folder `secure_files` secara manual.
-
-1. **Ubah File**: Buka file `secure_files/data.txt` menggunakan Notepad atau teks editor. Ganti isinya menjadi:
-
-   ```
-   Isi data rahasia ini sudah diubah!
-   ```
-
-   Lalu simpan.
-
-2. **Hapus File**: Di File Explorer, klik kanan pada file `secure_files/config.txt` dan hapus file tersebut.
-
-3. **Tambah File Baru**: Di dalam folder `secure_files`, buat sebuah file baru. Beri nama `hacked.js` dan isi dengan teks:
-
-   ```javascript
-   alert('kamu sudah di-hack');
-   ```
-
-<img width="498" height="391" alt="Screenshot 2025-11-04 235453" src="https://github.com/user-attachments/assets/8686301e-38d2-4e33-917a-9081c14a2dfe" />
-
----
-
-## LANGKAH 4: Menjalankan Deteksi Anomali
-
-1. Kembali ke terminal.
-2. Jalankan lagi perintah pengecekan:
-
+1. Pastikan folder `secure_files` sudah berisi beberapa file, termasuk subfolder.
+2. Jalankan server web di **Terminal 1**:
    ```bash
-   python integrity_checker.py --check
+   python app.py
    ```
+3. Buka **[http://127.0.0.1:5000](http://127.0.0.1:5000)**.
+   Pada tahap ini, semua file akan berstatus **“Tidak Dilacak”** karena baseline masih kosong.
+   <img width="2512" height="1305" alt="image" src="https://github.com/user-attachments/assets/b47179a0-28c4-4a15-abac-ad0d08a24cd4" />
 
-<img width="1566" height="221" alt="Screenshot 2025-11-04 235518" src="https://github.com/user-attachments/assets/a5b44d9e-8e74-4c99-ba85-e65bb326d170" />
+## LANGKAH 2: Menambahkan File ke Baseline
 
-*Deskripsi foto: Output terminal setelah menjalankan `--check`. Terlihat jelas log `WARNING` untuk file yang diubah dan dihapus, serta log `ALERT` untuk file baru yang tidak dikenal.*
-
----
-
-## LANGKAH 5: Melihat Laporan Ringkas
-
-1. Di terminal, jalankan skrip laporan:
-
+1. Buka **Terminal 2**.
+2. Jalankan perintah berikut untuk melacak semua file:
    ```bash
-   python report_generator.py
+   python integrity_checker.py --add .
    ```
+   <img width="2116" height="356" alt="image" src="https://github.com/user-attachments/assets/b0eb68d4-f6ef-4707-9e9c-58ee643004f8" />
+3. Refresh halaman dashboard.
+   Semua file kini akan berstatus **“Aman”** (warna hijau).
+   <img width="2493" height="1397" alt="Screenshot 2025-11-17 211738" src="https://github.com/user-attachments/assets/da39e03b-be2f-4fc9-bf56-976339db3a22" />
 
-   Hasilnya akan berupa ringkasan jumlah file yang aman dan yang terdeteksi memiliki anomali, beserta waktu anomali terakhir.
+## LANGKAH 3: Melakukan “Serangan”
 
-<img width="1436" height="258" alt="Screenshot 2025-11-04 235540" src="https://github.com/user-attachments/assets/dd832cf6-3b8f-4043-b08b-43b7b6c877cd" />
-<img width="1596" height="554" alt="Screenshot 2025-11-04 235601" src="https://github.com/user-attachments/assets/f6ea6f21-d909-4e0f-8840-7abed795a9d7" />
+Lakukan perubahan pada folder `secure_files`:
+* **Ubah File:** Modifikasi isi `data.txt`.
+* **Hapus File:** Hapus `folder_penting/rahasia.txt`.
+* **Tambah File Baru:** Buat file baru bernama `data3.txt`.
 
-*Deskripsi foto: Hasil akhir dari `report_generator.py` yang merangkum jumlah file rusak/anomali dan waktu kejadian terakhir, memberikan gambaran cepat tentang status keamanan sistem.*
+## LANGKAH 4: Mengamati Deteksi Real-time di Dashboard
 
----
+Tanpa perlu refresh, dashboard akan otomatis memperbarui status:
+* `data.txt` → **Diubah** (kuning)
+* `folder_penting/rahasia.txt` → **Dihapus** (merah)
+* `data3.txt` → **Tidak Dilacak** (abu-abu)
+
+<img width="2512" height="1265" alt="Screenshot 2025-11-17 211821" src="https://github.com/user-attachments/assets/bbd341ab-9529-4558-b093-f4d689287ee1" />
+<img width="2491" height="1137" alt="Screenshot 2025-11-17 211919" src="https://github.com/user-attachments/assets/a70c4756-cbda-4294-ba65-7d93555d6d8d" />
+<img width="2642" height="1416" alt="Screenshot 2025-11-17 212435" src="https://github.com/user-attachments/assets/2cd8ae39-f5d3-42f2-a62f-4acb79457237" />
+*Deskripsi: Dashboard mendeteksi perubahan secara otomatis tanpa perlu refresh.*
+
+
+
+
